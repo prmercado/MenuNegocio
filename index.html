@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menú Digital - Café Central</title>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Playfair+Display:ital,wght@0,900;1,900&display=swap');
+        
+        body { font-family: 'Inter', sans-serif; }
+        .font-serif { font-family: 'Playfair Display', serif; }
+        
+        @keyframes fade-in-up {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fade-in {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .animate-fade-in-up { animation: fade-in-up 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
+        .animate-fade-in { animation: fade-in 0.8s ease-out forwards; }
+        html { scroll-behavior: smooth; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef, useMemo } = React;
+
+        const THEMES = {
+            dark: {
+                primary: "#eba904",
+                accent: "#b8591a",
+                background: "#141414",
+                card: "#1a1a1a",
+                text: "#F4F4F5",
+                border: "#27272a",
+                input: "#18181b",
+                textMuted: "#A1A1AA"
+            },
+            light: {
+                primary: "#eba904",
+                accent: "#b8591a",
+                background: "#F8FAFC",
+                card: "#FFFFFF",
+                text: "#0F172A",
+                border: "#E2E8F0",
+                input: "#F1F5F9",
+                textMuted: "#64748B"
+            }
+        };
+
+        const MENU_DATA = {
+            "cafeteria": {
+                "nombre": "Casa Birra",
+                "moneda": "CLP",
+                "logoUrl": "public/logo.jpg", 
+                "backgroundUrl": "public/background.jpg",
+                "contacto": {
+                    "instagram": "https://instagram.com/",
+                    "facebook": "https://facebook.com/",
+                    "ubicacion": "https://maps.google.com",
+                    "email": "contacto@casabirra.cl"
+                },
+                "paginas": [
+                    { "nombre": "Eventos", "url": "https://instagram.com", "color": "#732AA8", "icon": "party" },
+                    { "nombre": "Cervezas", "url": "https://wa.me/56900000000", "color": "#eba904", "icon": "beer" }
+                ],
+                "secciones": [
+                    {
+                        "id": "SEC_COMIDA",
+                        "nombre": "Comida",
+                        "subsecciones": [
+                            {
+                                "id": "SEC_COMIDA_TABLAS",
+                                "nombre": "Tablas",
+                                "icon": "utensils",
+                                "productos": [
+                                    { "codigo": "TB001", "nombre": "Tabla Casa Birra", "precio": 18900, "descripcion": "Nuestra tabla estrella: Jamón serrano, queso camembert, salame italiano, aceitunas sevillanas, frutos secos y tostadas artesanales." },
+                                    { "codigo": "TB002", "nombre": "Tabla del Huerto", "precio": 14900, "descripcion": "Opción vegetariana: Hummus de garbanzo, bastones de zanahoria, queso de cabra, tomates cherry marinados y frutos de estación." },
+                                    { "codigo": "TB003", "nombre": "Tabla de Quesos Maduros", "precio": 16500, "descripcion": "Selección de 4 tipos de quesos premium acompañados de mermelada de la casa." }
+                                ]
+                            },
+                            {
+                                "id": "SEC_COMIDA_PICOTEO",
+                                "nombre": "Para Picar",
+                                "icon": "utensils_corssed",
+                                "productos": [
+                                    { "codigo": "PC001", "nombre": "Papas Nativas", "precio": 6500, "descripcion": "Papas rústicas fritas con piel, acompañadas de alioli de ajo asado." },
+                                    { "codigo": "PC002", "nombre": "Nachos Birreros", "precio": 8900, "descripcion": "Nachos bañados en salsa de queso cheddar, guacamole fresco y pico de gallo." },
+                                    { "codigo": "PC003", "nombre": "Chorrillana Individual", "precio": 9500, "descripcion": "Base de papas fritas, carne picada, cebolla caramelizada y huevo frito." }
+                                ]
+                            },
+                            {
+                                "id": "SEC_COMIDA_PIZZAS",
+                                "nombre": "Pizzas Artesanales",
+                                "icon": "pizza",
+                                "productos": [
+                                    { "codigo": "PZ001", "nombre": "Margarita", "precio": 9900, "descripcion": "Salsa de tomate pomodoro, mozzarella fresca, albahaca orgánica y aceite de oliva." },
+                                    { "codigo": "PZ002", "nombre": "Pepperoni Classic", "precio": 11500, "descripcion": "Doble porción de pepperoni sobre mozzarella y salsa de la casa." },
+                                    { "codigo": "PZ003", "nombre": "Birra Lover", "precio": 13900, "descripcion": "Mechada ahumada, cebolla morada, pimientos asados y toque de cilantro." }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "id": "SEC_BEBIDAS",
+                        "nombre": "Bebidas",
+                        "subsecciones": [
+                            {
+                                "id": "SEC_BEBIDAS_CERVEZAS",
+                                "nombre": "Cervezas de la Casa",
+                                "icon": "beer",
+                                "productos": [
+                                    { "codigo": "CV001", "nombre": "Lager 330cc", "precio": 3800, "descripcion": "Rubia, ligera, de amargor suave y final limpio." },
+                                    { "codigo": "CV002", "nombre": "Amber Ale 330cc", "precio": 4200, "descripcion": "Cerveza rojiza con notas a caramelo y cuerpo medio." },
+                                    { "codigo": "CV003", "nombre": "IPA Imperial", "precio": 4800, "descripcion": "Intenso aroma a lúpulos cítricos y amargor persistente para valientes." },
+                                    { "codigo": "CV004", "nombre": "Stout Chocolate", "precio": 4500, "descripcion": "Cerveza negra con notas tostadas de café y cacao amargo." }
+                                ]
+                            },
+                            {
+                                "id": "SEC_BEBIDAS_COCTELES",
+                                "nombre": "Coctelería",
+                                "icon": "wine",
+                                "productos": [
+                                    { "codigo": "CX001", "nombre": "Pisco Sour", "precio": 5500, "descripcion": "Receta clásica con pisco de 40°, limón sutil y goma." },
+                                    { "codigo": "CX002", "nombre": "Mojito Cubano", "precio": 5900, "descripcion": "Ron blanco, menta fresca, limón de pica y soda." },
+                                    { "codigo": "CX003", "nombre": "Gin Tonic Premium", "precio": 7500, "descripcion": "Gin nacional, tónica en botella, bayas de enebro y rodaja de pepino." }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            }
+        };
+
+        const Icon = ({ name, size = 20, className = "" }) => {
+            const icons = {
+                party: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-party-popper-icon lucide-party-popper"><path d="M5.8 11.3 2 22l10.7-3.79"/><path d="M4 3h.01"/><path d="M22 8h.01"/><path d="M15 2h.01"/><path d="M22 20h.01"/><path d="m22 2-2.24.75a2.9 2.9 0 0 0-1.96 3.12c.1.86-.57 1.63-1.45 1.63h-.38c-.86 0-1.6.6-1.76 1.44L14 10"/><path d="m22 13-.82-.33c-.86-.34-1.82.2-1.98 1.11c-.11.7-.72 1.22-1.43 1.22H17"/><path d="m11 2 .33.82c.34.86-.2 1.82-1.11 1.98C9.52 4.9 9 5.52 9 6.23V7"/><path d="M11 13c1.93 1.93 2.83 4.17 2 5-.83.83-3.07-.07-5-2-1.93-1.93-2.83-4.17-2-5 .83-.83 3.07.07 5 2Z"/></svg>,
+                utensils_corssed: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-utensils-crossed-icon lucide-utensils-crossed"><path d="m16 2-2.3 2.3a3 3 0 0 0 0 4.2l1.8 1.8a3 3 0 0 0 4.2 0L22 8"/><path d="M15 15 3.3 3.3a4.2 4.2 0 0 0 0 6l7.3 7.3c.7.7 2 .7 2.8 0L15 15Zm0 0 7 7"/><path d="m2.1 21.8 6.4-6.3"/><path d="m19 5-7 7"/></svg>,
+                utensils: <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2M7 2v20M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7" />,
+                beef:<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-beer-icon lucide-beer"><path d="M17 11h1a3 3 0 0 1 0 6h-1"/><path d="M9 12v6"/><path d="M13 12v6"/><path d="M14 7.5c-1 0-1.44.5-3 .5s-2-.5-3-.5-1.72.5-2.5.5a2.5 2.5 0 0 1 0-5c.78 0 1.57.5 2.5.5S9.44 2 11 2s2 1.5 3 1.5 1.72-.5 2.5-.5a2.5 2.5 0 0 1 0 5c-.78 0-1.5-.5-2.5-.5Z"/><path d="M5 8v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V8"/></svg>,
+                pizza: <path d="M15 11h.01M11 15h.01M16 16h.01M2 16L12 2l10 14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2ZM2 16h20" />,
+                beer: <path d="M17 11h1a3 3 0 0 1 0 6h-1M5 6v14a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V6M5 6a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2M5 6l2-2h8l2 2" />,
+                wine: <path d="M8 22h8M12 11v11M19 8c0 4.2-3.1 7.6-7 7.6S5 12.2 5 8V2h14v6Z" />,
+                instagram: <><rect width="20" height="20" x="2" y="2" rx="5" ry="5" /><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37zM17.5 6.5h.01" /></>,
+                facebook: <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />,
+                "map-pin": <><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" /><circle cx="12" cy="10" r="3" /></>,
+                mail: <><rect width="20" height="16" x="2" y="4" rx="2" /><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" /></>,
+                menu: <><line x1="4" x2="20" y1="12" y2="12" /><line x1="4" x2="20" y1="6" y2="6" /><line x1="4" x2="20" y1="18" y2="18" /></>,
+                x: <path d="M18 6 6 18M6 6l12 12" />,
+                sun: <><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" /></>,
+                moon: <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />,
+                coffee: <path d="M17 8h1a4 4 0 1 1 0 8h-1M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4ZM6 2v4M10 2v4M14 2v4" />,
+                "chevron-right": <path d="m9 18 6-6-6-6" />,
+                "message-circle": <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/>,
+                link: <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />,
+                palette: <path d="M12 20.94c1.88 0 3.05-1.4 3.05-3.11 0-.84-.35-1.45-.8-1.99-.3-.37-.75-.89-.75-1.24 0-1.15 1.64-1.21 1.64-3.21 0-3.09-2.9-5.39-6.94-5.39-4.74 0-7.2 3.06-7.2 6.11 0 5.2 4.46 8.83 11 8.83ZM7 9a1 1 0 1 0 0-2 1 1 0 0 0 0 2Zm3 4a1 1 0 1 0 0-2 1 1 0 0 0 0 2Zm6-1a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"/>,
+            };
+
+            return (
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width={size}
+                    height={size}
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className={className}
+                >
+                    {icons[name] || icons.coffee}
+                </svg>
+            );
+        };
+
+        const App = () => {
+            const [isDarkMode, setIsDarkMode] = useState(false);
+            const [isMenuOpen, setIsMenuOpen] = useState(false);
+            const [activeSubId, setActiveSubId] = useState(null);
+            const [fadeText, setFadeText] = useState('BIENVENIDO');
+            const [fadeIcon, setFadeIcon] = useState('coffee');
+            const [isFading, setIsFading] = useState(false);
+            const welcomeRef = useRef(null);
+            const currentTheme = isDarkMode ? THEMES.dark : THEMES.light;
+
+            const allSubsections = useMemo(() => 
+                MENU_DATA.cafeteria.secciones.flatMap(s => 
+                    s.subsecciones.map(sub => ({ ...sub, seccionPadreId: s.id, seccionPadreNombre: s.nombre }))
+                ), []
+            );
+            
+            const activeSubData = useMemo(() => allSubsections.find(s => s.id === activeSubId) || null, [activeSubId, allSubsections]);
+
+            useEffect(() => {
+                const nextText = activeSubData ? activeSubData.nombre : 'BIENVENIDO';
+                const nextIcon = activeSubData ? activeSubData.icon : 'coffee';
+                
+                if (nextText !== fadeText || nextIcon !== fadeIcon) {
+                    setIsFading(true);
+                    setTimeout(() => {
+                        setFadeText(nextText);
+                        setFadeIcon(nextIcon);
+                        setIsFading(false);
+                    }, 300);
+                }
+            }, [activeSubData]);
+
+            useEffect(() => {
+                const handleScroll = () => {
+                    const scrollY = window.scrollY;
+                    const triggerPoint = scrollY + (window.innerHeight * 0.4);
+                    
+                    if (welcomeRef.current) {
+                        const welcomeBottom = welcomeRef.current.offsetTop + welcomeRef.current.offsetHeight;
+                        if (triggerPoint < welcomeBottom) {
+                            setActiveSubId(null);
+                            return;
+                        }
+                    }
+
+                    for (const sub of allSubsections) {
+                        const el = document.getElementById(sub.id);
+                        if (el && triggerPoint >= el.offsetTop && triggerPoint <= (el.offsetTop + el.offsetHeight)) {
+                            setActiveSubId(sub.id);
+                            break;
+                        }
+                    }
+                };
+                window.addEventListener('scroll', handleScroll);
+                return () => window.removeEventListener('scroll', handleScroll);
+            }, [allSubsections]);
+
+            const scrollToSection = (id) => {
+                const element = document.getElementById(id);
+                if (element) {
+                    window.scrollTo({ top: element.offsetTop - 100, behavior: 'smooth' });
+                }
+                setIsMenuOpen(false);
+            };
+
+            const formatPrice = (p) => new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(p);
+
+            return (
+                <div className="min-h-screen transition-colors duration-500" style={{ backgroundColor: currentTheme.background, color: currentTheme.text }}>
+                    {/* BIENVENIDA */}
+                    <section id="welcome-section" ref={welcomeRef} className="relative h-screen flex flex-col items-center justify-center text-center p-6 overflow-hidden">
+                        <div className="absolute inset-0 z-0">
+                            {/* IMAGEN DE FONDO LOCAL */}
+                            <img src={MENU_DATA.cafeteria.backgroundUrl} className="w-full h-full object-cover opacity-40 grayscale-[20%]" />
+                            <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/30"></div>
+                        </div>
+                        <div className="relative z-10 animate-fade-in-up w-full max-w-lg">
+                            <div className="w-40 h-40 mx-auto mb-8 rounded-full overflow-hidden border-4 border-white/20 bg-white flex items-center justify-center shadow-2xl">
+                                {/* LOGO LOCAL */}
+                                <img src={MENU_DATA.cafeteria.logoUrl} className="w-full h-full object-cover" />
+                            </div>
+                            <h1 className="text-5xl md:text-7xl font-serif font-black mb-2 uppercase tracking-tighter">{MENU_DATA.cafeteria.nombre}</h1>
+                            <div className="w-20 h-1 mx-auto mb-10" style={{ backgroundColor: currentTheme.primary }}></div>
+                            
+                            {MENU_DATA.cafeteria.paginas && MENU_DATA.cafeteria.paginas.length > 0 && (
+                                <div className="flex flex-wrap justify-center gap-3 mb-6 px-4">
+                                    {MENU_DATA.cafeteria.paginas.map((p, i) => (
+                                        <button 
+                                            key={i} 
+                                            onClick={() => window.open(p.url, '_blank')} 
+                                            className="px-6 py-4 rounded-full font-bold uppercase tracking-[0.2em] text-[10px] shadow-xl hover:scale-105 transition-transform flex items-center justify-center gap-3 min-w-[140px]" 
+                                            style={{ backgroundColor: p.color || currentTheme.accent, color: 'white' }}
+                                        >
+                                            {p.icon && <Icon name={p.icon} size={14} />}
+                                            {p.nombre}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+
+                            <button onClick={() => scrollToSection(allSubsections[0].id)} className="px-12 py-5 rounded-full font-bold uppercase tracking-[0.2em] text-[10px] shadow-xl hover:scale-105 transition-transform" style={{ backgroundColor: currentTheme.primary, color: 'white' }}>
+                                Ver Menú
+                            </button>
+                        </div>
+                    </section>
+
+                    {/* HEADER FLOTANTE */}
+                    <div className="fixed top-4 left-4 right-4 z-50">
+                        <button onClick={() => setIsMenuOpen(true)} className="w-full max-w-lg mx-auto py-3 px-6 rounded-2xl shadow-2xl flex items-center justify-between border border-white/5 backdrop-blur-md" style={{ backgroundColor: currentTheme.card + 'ee' }}>
+                            <div className={`flex items-center gap-3 transition-all duration-300 ${isFading ? 'opacity-0 -translate-y-2' : 'opacity-100 translate-y-0'}`}>
+                                <div className="p-2 rounded-xl transition-all duration-300" style={{ backgroundColor: currentTheme.primary + '20', color: currentTheme.primary }}>
+                                    <Icon name={fadeIcon} size={16} />
+                                </div>
+                                <span className="text-[10px] font-black uppercase tracking-[0.2em] truncate max-w-[150px]">{fadeText}</span>
+                            </div>
+                            <div className="p-2 rounded-xl" style={{ backgroundColor: currentTheme.border }}>
+                                <Icon name="menu" size={16} />
+                            </div>
+                        </button>
+                    </div>
+
+                    {/* FLUJO DE PRODUCTOS */}
+                    <main className="max-w-3xl mx-auto px-4 py-20">
+                        {MENU_DATA.cafeteria.secciones.map(seccion => (
+                            <div key={seccion.id} className="mb-20">
+                                <div className="flex flex-col items-center mb-12 animate-fade-in">
+                                    <h2 className="text-4xl md:text-5xl font-serif font-black uppercase italic tracking-tighter" style={{ color: currentTheme.primary }}>{seccion.nombre}</h2>
+                                    <div className="w-12 h-1 mt-4 rounded-full" style={{ backgroundColor: currentTheme.accent }}></div>
+                                </div>
+
+                                <div className="space-y-12">
+                                    {seccion.subsecciones.map(sub => (
+                                        <section 
+                                            key={sub.id} 
+                                            id={sub.id} 
+                                            className={`p-8 rounded-3xl transition-all duration-700 ${activeSubId === sub.id ? 'opacity-100 scale-100 shadow-2xl translate-y-0' : 'opacity-50 scale-95 translate-y-4'}`} 
+                                            style={{ 
+                                                backgroundColor: activeSubId === sub.id ? currentTheme.card : currentTheme.card + '40', 
+                                                border: `1px solid ${activeSubId === sub.id ? currentTheme.border : 'transparent'}`,
+                                            }}
+                                        >
+                                            <div className="mb-10 flex items-center justify-between">
+                                                <h3 className="text-[11px] font-black uppercase tracking-[0.3em] flex items-center gap-4">
+                                                    <div className="p-2 rounded-lg" style={{ backgroundColor: currentTheme.primary + '15', color: currentTheme.primary }}>
+                                                        <Icon name={sub.icon} size={14} />
+                                                    </div>
+                                                    {sub.nombre}
+                                                </h3>
+                                                <div className="flex-1 h-px mx-6 opacity-10" style={{ backgroundColor: currentTheme.text }}></div>
+                                            </div>
+                                            
+                                            <div className="space-y-10">
+                                                {sub.productos.map(p => (
+                                                    <div key={p.codigo} className="group flex justify-between items-baseline border-b pb-8 last:border-0 last:pb-0" style={{ borderColor: currentTheme.border + '60' }}>
+                                                        <div className="flex-1 pr-8">
+                                                            <h4 className="font-black uppercase text-lg group-hover:translate-x-1 transition-transform">{p.nombre}</h4>
+                                                            <p className="text-[10px] font-bold uppercase tracking-widest mt-2 opacity-60 leading-relaxed" style={{ color: currentTheme.textMuted }}>{p.descripcion}</p>
+                                                        </div>
+                                                        <div className="font-serif text-2xl font-black italic shrink-0" style={{ color: currentTheme.accent }}>{formatPrice(p.precio)}</div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </section>
+                                    ))}
+                                </div>
+                            </div>
+                        ))}
+                    </main>
+
+                    {/* PIE DE PÁGINA */}
+                    <footer className="mt-20 w-full animate-fade-in">
+                        <div className="w-full px-6 py-16 flex flex-col items-center gap-12" style={{ backgroundColor: currentTheme.card, borderTop: `1px solid ${currentTheme.border}` }}>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 w-full max-w-4xl text-center">
+                                <a href={MENU_DATA.cafeteria.contacto.instagram} target="_blank" className="flex flex-col items-center gap-4 group">
+                                    <div className="w-14 h-14 rounded-2xl shadow-xl transition-all bg-pink-500/10 text-pink-500 group-hover:bg-pink-500 group-hover:text-white flex items-center justify-center">
+                                        <Icon name="instagram" size={24} />
+                                    </div>
+                                    <span className="text-[10px] font-black uppercase tracking-widest opacity-60">Instagram</span>
+                                </a>
+                                <a href={MENU_DATA.cafeteria.contacto.facebook} target="_blank" className="flex flex-col items-center gap-4 group">
+                                    <div className="w-14 h-14 rounded-2xl shadow-xl transition-all bg-blue-600/10 text-blue-600 group-hover:bg-blue-600 group-hover:text-white flex items-center justify-center">
+                                        <Icon name="facebook" size={24} />
+                                    </div>
+                                    <span className="text-[10px] font-black uppercase tracking-widest opacity-60">Facebook</span>
+                                </a>
+                                <a href={MENU_DATA.cafeteria.contacto.ubicacion} target="_blank" className="flex flex-col items-center gap-4 group">
+                                    <div className="w-14 h-14 rounded-2xl shadow-xl transition-all bg-green-500/10 text-green-500 group-hover:bg-green-500 group-hover:text-white flex items-center justify-center">
+                                        <Icon name="map-pin" size={24} />
+                                    </div>
+                                    <span className="text-[10px] font-black uppercase tracking-widest opacity-60">Ubicación</span>
+                                </a>
+                                <a href={`mailto:${MENU_DATA.cafeteria.contacto.email}`} className="flex flex-col items-center gap-4 group">
+                                    <div className="w-14 h-14 rounded-2xl shadow-xl transition-all flex items-center justify-center" style={{ backgroundColor: currentTheme.primary + '10', color: currentTheme.primary }}>
+                                        <Icon name="mail" size={24} />
+                                    </div>
+                                    <span className="text-[10px] font-black uppercase tracking-widest opacity-60">E-mail</span>
+                                </a>
+                            </div>
+                        </div>
+                    </footer>
+
+                    {/* MODAL MENU LATERAL */}
+                    {isMenuOpen && (
+                        <div className="fixed inset-0 z-[60] flex justify-end">
+                            <div className="absolute inset-0 bg-black/70 backdrop-blur-md animate-fade-in" onClick={() => setIsMenuOpen(false)}></div>
+                            <div className="relative w-full max-w-xs h-full p-10 shadow-2xl flex flex-col" style={{ backgroundColor: currentTheme.card }}>
+                                <div className="flex justify-between items-center mb-12">
+                                    <span className="font-serif text-3xl font-black italic">La Carta</span>
+                                    <button onClick={() => setIsMenuOpen(false)} className="p-3 rounded-2xl" style={{ backgroundColor: currentTheme.input }}><Icon name="x" size={20} /></button>
+                                </div>
+                                <div className="flex-1 overflow-y-auto space-y-10 pr-2">
+                                    {MENU_DATA.cafeteria.secciones.map(sec => (
+                                        <div key={sec.id} className="space-y-4">
+                                            <p className="text-[10px] font-black uppercase tracking-widest opacity-30 px-2">{sec.nombre}</p>
+                                            <div className="grid gap-2">
+                                                {sec.subsecciones.map(sub => (
+                                                    <button key={sub.id} onClick={() => scrollToSection(sub.id)} className="w-full p-5 rounded-2xl flex items-center justify-between font-black uppercase text-[10px] tracking-widest transition-all" style={{ backgroundColor: activeSubId === sub.id ? currentTheme.primary : currentTheme.input, color: activeSubId === sub.id ? 'white' : currentTheme.text }}>
+                                                        <div className="flex items-center gap-4">
+                                                            <Icon name={sub.icon} size={16} />
+                                                            {sub.nombre}
+                                                        </div>
+                                                        <Icon name="chevron-right" size={12} className={activeSubId === sub.id ? 'opacity-100' : 'opacity-0'} />
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                                <button onClick={() => setIsDarkMode(!isDarkMode)} className="mt-8 p-5 rounded-2xl flex items-center justify-between w-full shadow-lg border border-white/5" style={{ backgroundColor: currentTheme.input }}>
+                                    <span className="text-[10px] font-black uppercase tracking-widest">Modo {isDarkMode ? 'Claro' : 'Oscuro'}</span>
+                                    {isDarkMode ? <Icon name="sun" size={20} className="text-yellow-500" /> : <Icon name="moon" size={20} className="text-indigo-400" />}
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
